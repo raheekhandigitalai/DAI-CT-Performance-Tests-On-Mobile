@@ -20,8 +20,8 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Helpers {
 
@@ -46,21 +46,41 @@ public class Helpers {
 
     public String endCapturePerformanceMetrics(String transactionName) {
         Object transaction = driver.executeScript("seetest:client.endPerformanceTransaction(\"" + transactionName + "\")");
+        System.out.println("Transaction Information: " + transaction.toString());
         return transaction.toString();
     }
 
     // Properties that can be fetched:
     // transactionName / transactionId / appName / appVersion / link (Link to Performance Transaction Report)
     public String getPropertyFromPerformanceTransactionReport(String response, String property) {
-        JSONObject jsonObject = new JSONObject(response);
-        String text = jsonObject.getString("text");
-        JSONObject textObject = new JSONObject(text);
-        property = textObject.get(property).toString();
-        return property;
+        // Remove the prefix
+        String dataString = response.replace("Transaction Information: ", "").trim();
+        dataString = dataString.substring(1, dataString.length() - 1); // Remove the outer braces
+
+        Map<String, Object> transactionMap = new HashMap<>();
+
+        // Split the main sections
+        String[] pairs = dataString.split(",\\s*(?=\\w+=)"); // Match key-value pairs
+        for (String pair : pairs) {
+            String[] keyValue = pair.split("=", 2); // Split on the first '='
+            String key = keyValue[0].trim();
+            String value = keyValue.length > 1 ? keyValue[1].trim() : null;
+
+            // Handle nested objects or arrays
+            if (value != null && value.startsWith("{")) {
+                // For simplicity, store the nested data as a string
+                transactionMap.put(key, value);
+            } else {
+                // Handle nulls and other values
+                transactionMap.put(key, value != null && value.equals("null") ? null : value);
+            }
+        }
+
+        return (String) transactionMap.get(property);
     }
 
     // Properties that can be fetched:
-    // networkProfile / cpuAvg / cpuMax / memAvg / memMax / batteryAvg / batteryMax / duration / speedIndex
+    // networkProfile / cpuAvg / cpuMax / cpuCoreCount / memAvg / memMax / memTotalInBytes / batteryAvg / batteryMax / duration / speedIndex
     public String getPropertyFromPerformanceTransactionAPI(String transactionId, String property) throws UnirestException {
         HttpResponse<String> response = Unirest.get(new PropertiesReader().getProperty("urlForAPIs") + "/reporter/api/transactions/" + transactionId)
 //                .header("Authorization", "Bearer " + System.getenv("ACCESS_KEY"))
@@ -123,8 +143,8 @@ public class Helpers {
 
         // Calls API to get HAR file
         URI uri = new URIBuilder(new PropertiesReader().getProperty("urlForAPIs") + "/reporter/api/transactions/" + transactionId + "/har")
-                .setParameter("token", System.getenv("ACCESS_KEY"))
-//                .setParameter("token", new PropertiesReader().getProperty("accessKey"))
+//                .setParameter("token", System.getenv("ACCESS_KEY"))
+                .setParameter("token", new PropertiesReader().getProperty("accessKey"))
                 .build();
 
         HttpClient httpClient = HttpClientBuilder.create().build();
@@ -145,11 +165,11 @@ public class Helpers {
     }
 
     public void addReportStep(String input) {
-        driver.executeScript("seetest:client.report(\"" + input + "\", \"true\")");
+        driver.executeScript("seetest:client.report", input, "true");
     }
 
     public void addReportStep(String input, String status) {
-        driver.executeScript("seetest:client.report(\"" + input + "\", \"" + status + "\")");
+        driver.executeScript("seetest:client.report(\"" + input + "\", " + status + ")");
     }
 
     public void addPropertyForReporting(String property, String value) {

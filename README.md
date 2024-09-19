@@ -1,57 +1,55 @@
 # DAI-CT-Performance-Tests-on-Mobile-Sample
 
-This repository have a few examples on the type of data we can capture as part of Performance Testing with Digital.ai's Continuous Testing solution.
+### Prerequisites
 
-I'll be referring to "Performance Transaction", which can be seen as a user flow that we want to capture, for example, launching an Application, logging into an Application, or making a Payment can all be considered individual Performance Transactions.
+Provide your Cloud URL and Access Key in ```config.properties``` file.
 
-Let's take a look at an example on how we can capture metrics from Performance Transactions as part of our Functional Appium Scripts.
+[Obtain your Access Key](https://docs.digital.ai/bundle/TE/page/obtaining_access_key.html)
 
-### Technology
+### Overview
 
-- Programming Language: Java
-- Test Framework: TestNG
-- Compiler: Maven
+This repository provides a practical example on how you can start to capture Performance Transactions from your Functional Appium Scripts.
 
-### Flow
+The example we will use in this repository is from ```src/test/tests/ExamplePerformanceTests.java```
 
-The logic of A Functional Appium Script may go like this:
+We start to capture the Performance Transaction in the following way:
 
-- Launch Application
-- Login to the Application
-- Make a Payment
-- Logout from the Application
+```agsl
+// Start Performance Transaction Capturing
+helper.startCapturePerformanceMetrics("4G-average", "Device", "com.experitest.ExperiBank");
+```
 
-For this flow, we can break it down to 4 Performance Transactions. Let's take a look at one Performance Transaction:
+The first parameter "4G-average" represents the Network Profile we want to use to simulate a different network condition.
 
-- Step 1 - Start Performance Transaction
-- Step 2 - Launch Application
-- Step 3 - Verify user has landed on the Login Page
-- Step 4 - Stop Performance Transaction
+The second parameter "Device" is whether we want to capture the metrics (CPU, Memory, Battery, Network) from the Device OS level, or Application level. If only on Application level, changing the value to "Application".
 
-For a full example and walkthrough of steps, see **E2E_Flow.java** file.
+The third parameter "com.experitest.ExperiBank" is which Application in context we want to capture the metrics for. In this case, it is against the Native Application we are testing against. 
 
-### Result
+We end the capturong of Performance Metrics with the following line:
 
-Digital.ai's Continuous Testing platform generates a Video Report by default as part of the Functional Appium Script. When running Performance Transactions, separate reports are generated specific to a Performance Report.
+```agsl
+// End the Performance Transaction Capturing
+String response = helper.endCapturePerformanceMetrics(method.getName());
+```
 
-Here is an example view of our out-of-the box Reporting Dashboard for the Functional Appium Test Results:
+With the response, we can now extract values from it with the following function:
 
-![](images/TestReportsView.jpg)
+```agsl
+// Accepted values for 2nd parameter: transactionName / transactionId / appName / appVersion / link (Link to Performance Transaction Report)
+helper.getPropertyFromPerformanceTransactionReport(response, "value");
+```
 
-Opening up an individual Automated Report, I can see the entire Test Flow, and as a new line, the URL link to the Performance Transaction that relates to this particular Test:
+If we want to go further, we can also use the following function to extract values using Rest API:
 
-![](images/FunctionalTestReport.jpg)
+```agsl
+// Accepted values for 2nd parameter: // networkProfile / cpuAvg / cpuMax / cpuCoreCount / memAvg / memMax / memTotalInBytes / batteryAvg / batteryMax / duration / speedIndex
+helper.getPropertyFromPerformanceTransactionAPI(transactionId, "value");
+```
 
-Each Performance Transaction when opened allows us to see additional granular information related to Performance Transaction, such as CPU, Memory, Battery & Network:
+With this level of extraction and modification to the script, we end up with a Functional Report like this:
 
-![](images/PerformanceTransaction.jpg)
+![FunctionalTestReport.png](images%2FFunctionalTestReport.png)
 
-Apart from viewing the individual Performance Transactions report one by one, we can also look at the overall transactions that ran under the Transactions view to help us understand trends & potential bottlenecks. In this particular example, we can see that the Speed Index was slightly higher on higher iOS Versions:
+And you can still go to the individual Performance Transaction with the Link attached within the Report:
 
-![](images/TransactionsViewHighLevel.jpg)
-
-### Visual References
-
-Performance Transactions running across 5 Devices in parallel:
-
-![](images/ParallelExecution.png)
+![PerformanceTransactionReport.png](images%2FPerformanceTransactionReport.png)

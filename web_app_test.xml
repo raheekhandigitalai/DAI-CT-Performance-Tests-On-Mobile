@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Test Automation" parallel="tests" thread-count="1">
+
+    <test name="WebApp_Test_01">
+
+        <parameter name="nvProfile" value="4G-average" />
+        <parameter name="captureLevel" value="Application" /> <!--Accepted Values: 'Device' or 'Application' -->
+
+        <parameter name="deviceQuery" value="@os='ios' and @category='PHONE'" />
+
+        <classes>
+            <class name="tests.PageLoadTime_WebApp_Tests"/>
+        </classes>
+    </test>
+
+    <test name="E2E_Test_02">
+
+        <parameter name="nvProfile" value="4G-average" />
+        <parameter name="captureLevel" value="Device" />
+
+        <parameter name="deviceQuery" value="@os='ios' and @category='PHONE'" />
+
+        <classes>
+            <class name="tests.PageLoadTime_WebApp_Tests"/>
+        </classes>
+    </test>
+
+    <test name="E2E_Test_03">
+
+        <parameter name="nvProfile" value="4G-average" />
+        <parameter name="captureLevel" value="Device" />
+
+        <parameter name="deviceQuery" value="@os='ios' and @category='PHONE'" />
+
+        <classes>
+            <class name="tests.PageLoadTime_WebApp_Tests"/>
+        </classes>
+    </test>
+
+    <test name="E2E_Test_04">
+
+        <parameter name="nvProfile" value="4G-average" />
+        <parameter name="captureLevel" value="Device" />
+
+        <parameter name="deviceQuery" value="@os='ios' and @category='PHONE'" />
+
+        <classes>
+            <class name="tests.PageLoadTime_WebApp_Tests"/>
+        </classes>
+    </test>
+
+    <test name="E2E_Test_05">
+
+        <parameter name="nvProfile" value="4G-average" />
+        <parameter name="captureLevel" value="Device" />
+
+        <parameter name="deviceQuery" value="@os='ios' and @category='PHONE'" />
+
+        <classes>
+            <class name="tests.PageLoadTime_WebApp_Tests"/>
+        </classes>
+    </test>
+
+</suite>

@@ -3,7 +3,6 @@ package tests;
 import helpers.Helpers;
 import helpers.PropertiesReader;
 import io.appium.java_client.ios.IOSDriver;
-import io.appium.java_client.ios.IOSElement;
 import org.openqa.selenium.By;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -13,12 +12,30 @@ import org.testng.ITestResult;
 import org.testng.annotations.*;
 
 import java.lang.reflect.Method;
-import java.net.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.time.Duration;
 import java.util.ArrayList;
 
-public class PageLoadTimeTest {
+public class PageLoadTime_WebApp_Tests {
 
-    protected IOSDriver<IOSElement> driver = null;
+    /**
+     *
+     * ==================================================
+     *                      READ ME                     =
+     * ==================================================
+     *
+     * This particular test is an example of how Performance Transactions can be done on
+     * Mobile Web Applications. While example is for iOS with Safari, this is also applicable
+     * for Android with Chrome.
+     *
+     * The particular purpose of this test is to capture the Speed Index, understanding how
+     * long it took to go from one page to another with the purpose of highlighting the
+     * Reports with this data.
+     *
+     */
+
+    protected IOSDriver driver = null;
     protected DesiredCapabilities desiredCapabilities = new DesiredCapabilities();
     protected WebDriverWait wait = null;
 
@@ -31,19 +48,21 @@ public class PageLoadTimeTest {
         String deviceQuery = context.getCurrentXmlTest().getParameter("deviceQuery");
 
         desiredCapabilities.setCapability("testName", method.getName());
-        desiredCapabilities.setCapability("accessKey", System.getenv("ACCESS_KEY"));
+        desiredCapabilities.setCapability("accessKey", new PropertiesReader().getProperty("accessKey"));
         desiredCapabilities.setCapability("deviceQuery", deviceQuery);
+        desiredCapabilities.setCapability("automationName", "XCUITest");
         desiredCapabilities.setBrowserName("Safari");
         desiredCapabilities.setCapability("autoAcceptAlerts", true);
 
-        driver = new IOSDriver<>(new URL(new PropertiesReader().getProperty("cloudUrl")), desiredCapabilities);
-        wait = new WebDriverWait(driver, 10);
+        driver = new IOSDriver(new URL(new PropertiesReader().getProperty("cloudUrl")), desiredCapabilities);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         helper = new Helpers(driver);
     }
 
     @Test
     @Parameters({"nvProfile", "captureLevel"})
     public void login_page_load_time(String nvProfile, String captureLevel, @Optional Method method) {
+        // Navigate to demo environment
         driver.navigate().to("https://demo-bank.ct.digital.ai/");
 
         try {
@@ -53,12 +72,13 @@ public class PageLoadTimeTest {
             // Functional Steps to get to the point before I want to start capturing the Performance Transaction
             wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@class='mobile-login-logo']")));
 
-            driver.findElement(By.xpath("(//*[@css='INPUT.dx-texteditor-input'])[1]")).sendKeys("company");
-            driver.findElement(By.xpath("(//*[@css='INPUT.dx-texteditor-input'])[2]")).sendKeys("company");
+            driver.findElement(By.xpath("(//*[@class='dx-texteditor-input'])[1]")).sendKeys("company");
+            driver.findElement(By.xpath("(//*[@class='dx-texteditor-input'])[2]")).sendKeys("company");
 
             // Start Performance Transaction Capturing
             helper.startCapturePerformanceMetrics(nvProfile, captureLevel, "com.apple.mobilesafari");
 
+            // Functional step(s) to perform for which Performance Metrics will be captured on
             driver.findElement(By.xpath("//*[@class='dx-button-content' and contains(text(), 'Login')]")).click();
             wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@class='total-balance']")));
 
@@ -77,6 +97,8 @@ public class PageLoadTimeTest {
 
             // Extract relevant properties from the Performance Transaction API Response
             speedIndex = helper.getPropertyFromPerformanceTransactionAPI(transactionId, "speedIndex");
+            System.out.println(speedIndex);
+            System.out.println(link);
 
             // Add a custom step to the Automated Test Results with a link reference to the Performance Transaction Report
             helper.addReportStep(link);
@@ -96,18 +118,18 @@ public class PageLoadTimeTest {
             e.printStackTrace();
         }
 
-//         Add custom properties that allow for easier filtering for the Automated Test Results
-        helper.addPropertyForReporting("nvProfile", nvProfile);
-        helper.addPropertyForReporting("captureLevel", captureLevel);
-
     }
 
     @AfterMethod(alwaysRun = true)
-    public void tearDown(ITestResult result) {
-        if (!result.isSuccess()) {
-            helper.setReportStatus("Failed", "Test Failed");
-        } else {
-            helper.setReportStatus("Passed", "Test Passed");
+    @Parameters({"nvProfile", "captureLevel"})
+    public void tearDown(String nvProfile, String captureLevel, @Optional ITestContext context) {
+        try {
+            // Add custom properties that allow for easier filtering for the Automated Test Results
+            helper.addPropertyForReporting("nvProfile", nvProfile);
+            helper.addPropertyForReporting("captureLevel", captureLevel);
+            helper.addPropertyForReporting("category", "performance");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         driver.quit();

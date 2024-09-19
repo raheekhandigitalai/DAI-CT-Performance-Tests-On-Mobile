@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Test Automation" parallel="tests" thread-count="5">
+
+    <test name="test_01">
+
+        <classes>
+            <class name="tests.ExamplePerformanceTests"/>
+        </classes>
+    </test>
+
+    <test name="test_02">
+
+        <classes>
+            <class name="tests.ExamplePerformanceTests"/>
+        </classes>
+    </test>
+
+    <test name="test_03">
+
+        <classes>
+            <class name="tests.ExamplePerformanceTests"/>
+        </classes>
+    </test>
+
+    <test name="test_04">
+
+        <classes>
+            <class name="tests.ExamplePerformanceTests"/>
+        </classes>
+    </test>
+
+    <test name="test_05">
+
+        <classes>
+            <class name="tests.ExamplePerformanceTests"/>
+        </classes>
+    </test>
+
+</suite>
